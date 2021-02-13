@@ -174,7 +174,13 @@ syn match	AArch64Mnemonic		"\<zip[12]\>\ze\s" contained
 
 " Numbers {{{
 " Decimal.
-syn match	AArch64Number		"[^_a-zA-Z0-9]\zs[#\$]\?[-+]\?\d\+\>" contained
+" Avoid numbers highlight inside control flow instructions.
+" XXX: Exclude [><]\d pattern from whole dasc.
+" Exceptions from the rule:
+" * the first \.(el)?if before [><]\d (.if SMTH <5)
+" * <<|>>\d (1<<5)
+" See https://github.com/Buristan/vim-syntax-dynasm/issues/1.
+syn match	AArch64Number		"\(\(\.\(el\)\?if[^\.]*\)\@<!\([^<]<\|[^>]>\)\)\@<![^_a-zA-Z0-9]\zs[#\$]\?[-+]\?\d\+\>" contained
 " Hex.
 syn match	AArch64Number		"[^_a-zA-Z0-9]\zs[#\$]\?[-+]\?0x\x\+\>" contained
 " Bin.

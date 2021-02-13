@@ -33,13 +33,6 @@ elseif exists("b:current_syntax")
   finish
 endif
 
-if version < 600
-  so <sfile>:p:h/c.vim
-else
-  runtime! syntax/c.vim
-  unlet b:current_syntax
-endif
-
 " Define Asm syntax {{{
 
 let g:DascArch = s:DetectDascArch()
@@ -67,21 +60,16 @@ endif
 
 " end of Asm syntax definition }}}
 
-syn keyword	dascTodo		contained TODO FIXME XXX
-syn region	dascComment		start="//" end="$" contains=dascTodo
-
-" Preproc {{{
-syn match dascPreproc			"\.\(arch\|capture\|elif\|else\|endcapture\|endif\|endmacro\|error\|define\|dumpcapture\|fatal\|if\|include\|label\|macro\|nop\|section\|template\|type\)\>" contained
-" XXX: not separate arch specific Preproc macro. They look pretty
-" the same. If it necessary, it may be separated.
-" Also may check the amount of arguments.
-syn match dascPreproc			"\.\(actionlist\|align\|aword\|byte\|dword\|externnames\|globalnames\|globals\|long\|sbyte\|space\|word\)\>" contained
-" end of Preproc }}}
-
 " Numbers {{{
 " This part is taken verbatim or adapted from c.vim.
 syn match	dascNumbersCom		display contained transparent "\<-\?\d\|-\?\.\d" contains=dascNumber,dascFloat
-syn match	dascNumber		display contained "\<-\?\d\+\(u\=l\{0,2}\|ll\=u\)\>"
+" Avoid numbers highlight inside control flow instructions.
+" XXX: Exclude [><]\d pattern from whole dasc.
+" Exceptions from the rule:
+" * the first \.(el)?if before [><]\d (.if SMTH <5)
+" * <<|>>\d (1<<5)
+" See https://github.com/Buristan/vim-syntax-dynasm/issues/1.
+syn match	dascNumber		display contained "\(\(\.\(el\)\?if[^\.]*\)\@<!\([^<]<\|[^>]>\)\)\@<!\zs\<-\?\d\+\(u\=l\{0,2}\|ll\=u\)\>"
 " Hex number.
 syn match	dascNumber		display contained "\<0x\x\+\(u\=l\{0,2}\|ll\=u\)\>"
 syn match	dascNumber		display contained "\<\x\{8}\>"
@@ -94,6 +82,27 @@ syn match	dascFloat		display contained "\.\d\+\(e[-+]\=\d\+\)\=[fl]\=\>"
 " Floating point number, without dot, with exponent.
 syn match	dascFloat		display contained "\d\+e[-+]\=\d\+[fl]\=\>"
 " end of Numbers }}}
+
+" Should be after arm* and numbers to rewrite arm*|Dasc numbers
+" and highlight cNumber inside C part of the code.
+" See https://github.com/Buristan/vim-syntax-dynasm/issues/1.
+if version < 600
+  so <sfile>:p:h/c.vim
+else
+  runtime! syntax/c.vim
+  unlet b:current_syntax
+endif
+
+syn keyword	dascTodo		contained TODO FIXME XXX
+syn region	dascComment		start="//" end="$" contains=dascTodo
+
+" Preproc {{{
+syn match dascPreproc			"\.\(arch\|capture\|elif\|else\|endcapture\|endif\|endmacro\|error\|define\|dumpcapture\|fatal\|if\|include\|label\|macro\|nop\|section\|template\|type\)\>" contained
+" XXX: not separate arch specific Preproc macro. They look pretty
+" the same. If it necessary, it may be separated.
+" Also may check the amount of arguments.
+syn match dascPreproc			"\.\(actionlist\|align\|aword\|byte\|dword\|externnames\|globalnames\|globals\|long\|sbyte\|space\|word\)\>" contained
+" end of Preproc }}}
 
 syn cluster	dascString		add=cString
 
